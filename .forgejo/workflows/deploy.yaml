@@ -9,6 +9,12 @@ on:
       env:
         required: true
         type: string
+      tag:
+        required: false
+        type: string
+      meta-tags:
+        required: false
+        type: string
     secrets:
       M8A_ORG_BOT_REPO_TOKEN:
         required: true
@@ -35,3 +41,5 @@ jobs:
         with:
           app: ${{ inputs.app }}
           env: ${{ inputs.env }}
+          tag: ${{ inputs.tag }}
+          meta-tags: ${{ inputs.meta-tags }}

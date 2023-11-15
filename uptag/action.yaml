@@ -7,6 +7,12 @@ inputs:
   env:
     description: "The env directory name"
     required: true
+  tag:
+    description: "The tag to set, default to extracted from meta-tags inputs"
+    required: false
+  meta-tags:
+    description: "The meta-tags inputs, required if inputs.tag is not provided"
+    required: false
 
 runs:
   using: "composite"
@@ -17,9 +23,13 @@ runs:
       CD_ENV: ${{ inputs.env }}
     shell: bash
     run: |
-      IFS=',' read -ra TAGS_ARRAY <<< "${{ steps.meta.outputs.tags }}"
-      IMAGE=${TAGS_ARRAY[0]}
-      TAG=${IMAGE##*:}
+      TAG=${{ inputs.tag }}
+      if [ -z "$TAG" ]; then
+        IFS=',' read -ra TAGS_ARRAY <<< "${{ inputs.meta-tags }}"
+        IMAGE=${TAGS_ARRAY[0]}
+        TAG=${IMAGE##*:}
+      fi
+
       echo "Using tag: $TAG"
       yq e '.image.tag = "'$TAG'"' -i apps/$CD_APP/envs/$CD_ENV/values.yaml
       git config user.name "forgejo-actions"
