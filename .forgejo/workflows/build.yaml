@@ -1,18 +1,9 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
-name: CI-CD
+name: Build
 on:
   workflow_call:
-    inputs:
-      app:
-        required: false
-        type: string
-      env:
-        required: true
-        type: string
     secrets:
       M8A_ORG_BOT_PACKAGE_TOKEN:
-        required: true
-      M8A_ORG_BOT_REPO_TOKEN:
         required: true
 
 concurrency:
@@ -30,9 +21,6 @@ jobs:
       image: devthefuture/act-runner:latest
       volumes:
       - /buildkit-certs:/buildkit-certs
-    # permissions:
-    #   contents: read
-    #   packages: write
     steps:
       - name: ⏬ Checkout code repository
         uses: actions/checkout@v4
@@ -53,9 +41,8 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }},priority=200
 
       - name: 📦 Build and push Docker image
-        uses: https://codeberg.org/devthefuture/buildkit-actions/build-push@main
+        uses: devthefuture/actions/buildkit@main
         with:
-          # path: build
           # context: .
           # file: Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
@@ -64,35 +51,3 @@ jobs:
           registry-username: "org-bot-${{ github.repository_owner }}"
           registry-password: ${{ secrets.M8A_ORG_BOT_PACKAGE_TOKEN }}
   
-  deploy:
-    runs-on: ubuntu-latest
-    needs:
-    - build
-    container:
-      image: devthefuture/act-runner:latest
-    steps:
-      - name: 🎡 Check out the Helm chart repository
-        uses: actions/checkout@v4
-        with:
-          # path: appsets
-          repository: "${{ github.repository_owner }}/appsets"
-          token: ${{ secrets.M8A_ORG_BOT_REPO_TOKEN }}
-          ref: "main"
-      
-      - name: 🚀 Upgrade image tag
-        # working-directory: appsets
-        env:
-          CD_APP: ${{ inputs.app || github.event.repository.name }}
-          CD_ENV: ${{ inputs.env }}
-        shell: bash
-        run: |
-          IFS=',' read -ra TAGS_ARRAY <<< "${{ steps.meta.outputs.tags }}"
-          IMAGE=${TAGS_ARRAY[0]}
-          TAG=${IMAGE##*:}
-          echo "Using tag: $TAG"
-          yq e '.image.tag = "'$TAG'"' -i apps/$CD_APP/envs/$CD_ENV/values.yaml
-          git config user.name "forgejo-actions"
-          git config user.email "bot@devthefuture.org"
-          git add .
-          git commit --allow-empty -m "chore: update image tag to ${GITHUB_REF#refs/tags/}"
-          git push origin HEAD

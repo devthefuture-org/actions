@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: Deploy
+on:
+  workflow_call:
+    inputs:
+      app:
+        required: false
+        type: string
+      env:
+        required: true
+        type: string
+    secrets:
+      M8A_ORG_BOT_REPO_TOKEN:
+        required: true
+
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.ref }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    container:
+      image: devthefuture/act-runner:latest
+    steps:
+      - name: 🎡 Check out the Helm chart repository
+        uses: actions/checkout@v4
+        with:
+          repository: "${{ github.repository_owner }}/appsets"
+          token: ${{ secrets.M8A_ORG_BOT_REPO_TOKEN }}
+          ref: "main"
+      
+      - name: 🚀 Upgrade image tag
+        uses: devthefuture/actions/uptag@main
+        with:
+          app: ${{ inputs.app }}
+          env: ${{ inputs.env }}

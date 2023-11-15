@@ -1,0 +1,29 @@
+name: Upgrade tag in appsets
+description: "Set image tag in values of an application for appsets of an organization"
+inputs:
+  app:
+    description: "The app directory name, default to repository name"
+    required: false
+  env:
+    description: "The env directory name"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+  - name: 🚀 Upgrade image tag
+    env:
+      CD_APP: ${{ inputs.app || github.event.repository.name }}
+      CD_ENV: ${{ inputs.env }}
+    shell: bash
+    run: |
+      IFS=',' read -ra TAGS_ARRAY <<< "${{ steps.meta.outputs.tags }}"
+      IMAGE=${TAGS_ARRAY[0]}
+      TAG=${IMAGE##*:}
+      echo "Using tag: $TAG"
+      yq e '.image.tag = "'$TAG'"' -i apps/$CD_APP/envs/$CD_ENV/values.yaml
+      git config user.name "forgejo-actions"
+      git config user.email "bot@devthefuture.org"
+      git add .
+      git commit --allow-empty -m "chore: update image tag to ${GITHUB_REF#refs/tags/}"
+      git push origin HEAD

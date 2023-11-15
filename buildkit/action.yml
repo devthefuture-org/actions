@@ -1,0 +1,106 @@
+name: 'Buildkit build and push image'
+description: 'Build docker image using buildkits buildctl'
+inputs:
+  path:
+    description: 'Root directory'
+    required: false
+    default: '.'
+  context:
+    description: 'Folder to use as context during image build'
+    required: false
+    default: '.'
+  dockerfile:
+    description: 'Dockerfile path to use for the build'
+    required: false
+    default: 'Dockerfile'
+  platforms:
+    description: 'Platform(s) that the image should be build for, multiple platforms can be specified comma separated (linux/amd64,linux/arm64)'
+    required: true
+    default: 'linux/amd64'
+  tags:
+    description: 'Tags to build to the image'
+    required: true
+    default: ''
+  labels:
+    description: 'Labels for the image'
+    required: false
+    default: ''
+  buildkit-daemon-address:
+    description: 'Address of the buildkit daemon to use'
+    required: true
+    default: 'tcp://buildkit-service.buildkit-service.svc:1234'
+  buildkit-cert-ca-file:
+    description: 'The ca certificate file to use for the buildkit client'
+    required: true
+    default: '/buildkit-certs/ca.pem'
+  buildkit-cert-file:
+    description: 'The certificate file to use for the buildkit client'
+    required: true
+    default: '/buildkit-certs/cert.pem'
+  buildkit-cert-key-file:
+    description: 'The certificate key file to use for the buildkit client'
+    required: true
+    default: '/buildkit-certs/key.pem'
+  push:
+    description: 'Defines whether the image should be pushed to the registry or not, default is true'
+    required: false
+    default: "true"
+  build-args:
+    description: 'Build arguments to be passed to the build'
+    required: false
+  secrets:
+    description: 'Build secrets to be passed to the build'
+    required: false
+  registry:
+    description: 'The docker registry to push built images'
+    required: false
+  registry-username:
+    description: 'The docker registry user'
+    required: false
+  registry-password:
+    description: 'The docker registry password'
+    required: false
+runs:
+  using: 'composite'
+  steps:
+    - shell: bash
+      run: |
+        cd "${{ inputs.path }}"
+
+        # hanlde secrets to args
+        declare -a secret_args
+        while IFS='=' read -r key val; do
+          if [[ -n "$key" && -n "$val" ]]; then
+            val="${val%\'*}"
+            val="${val%\"*}"
+            val="${val#\'}"
+            val="${val#\"}"
+            export SECRET_ENV_${key}="${val}"
+            secret_args+=("--secret id=${key},env=SECRET_ENV_${key}")
+          fi
+        done <<< "${{ inputs.secrets }}"
+
+        # login to docker registry
+        export DOCKER_CONFIG=~/.docker
+        if [ -n "${{ inputs.registry }}" ]; then
+          mkdir -p $DOCKER_CONFIG
+          echo "{\"auths\":{\"${{ inputs.registry }}\":{\"username\":\"${{ inputs.registry-username }}\",\"password\":\"${{ inputs.registry-password }}\"}}}" > $DOCKER_CONFIG/config.json
+        fi
+
+        # build and push using buildkit
+        buildctl \
+          --addr ${{ inputs.buildkit-daemon-address }} \
+          --tlscacert ${{ inputs.buildkit-cert-ca-file }} \
+          --tlscert ${{ inputs.buildkit-cert-file }} \
+          --tlskey ${{ inputs.buildkit-cert-key-file }} \
+          build \
+            --frontend dockerfile.v0 \
+            --local context=${{ inputs.context }} \
+            --local dockerfile=${{ inputs.context }} \
+            --opt platform=${{ inputs.platforms }} \
+            $(echo "${{ inputs.build-args }}" | sed -r '/^\s*$/d' - | sed -r 's/(.*)/--opt build-arg:\1 \\/' -) \
+            $(echo "${{ inputs.labels }}" | sed -r '/^\s*$/d' - | sed -r 's/(.*)/--opt label:\1 \\/' -) \
+            "${secret_args[@]}" \
+            --target=${{ inputs.target }} \
+            --opt filename=./${{ inputs.dockerfile }} \
+            --output type=image,\"name=$(echo "${{ inputs.tags }}" | paste -sd ',' -)\",push=${{ inputs.push }}
