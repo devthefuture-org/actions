@@ -2,6 +2,9 @@
 name: Build
 on:
   workflow_call:
+    secrets:
+      M8A_ORG_BOT_PACKAGE_TOKEN:
+        required: true
     inputs:
       context:
         type: string
@@ -11,9 +14,10 @@ on:
         type: string
         default: Dockerfile
         required: false
-    secrets:
-      M8A_ORG_BOT_PACKAGE_TOKEN:
-        required: true
+    outputs:
+      tags:
+        description: "Docker image tags"
+        value: ${{ jobs.build.outputs.tags }}
 
 concurrency:
   cancel-in-progress: true
@@ -21,6 +25,8 @@ concurrency:
 
 jobs:
   build:
+    outputs:
+      tags: ${{ steps.meta.outputs.tags }}
     runs-on: ubuntu-latest
     container:
       # see https://code.forgejo.org/forgejo/act#runners
