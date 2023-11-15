@@ -2,6 +2,15 @@
 name: Build
 on:
   workflow_call:
+    inputs:
+      context:
+        type: string
+        default: "."
+        required: false
+      dockerfile:
+        type: string
+        default: Dockerfile
+        required: false
     secrets:
       M8A_ORG_BOT_PACKAGE_TOKEN:
         required: true
@@ -24,8 +33,6 @@ jobs:
     steps:
       - name: ⏬ Checkout code repository
         uses: actions/checkout@v4
-        # with:
-        #   path: build
      
       - name: 📌 Extract metadata (tags, labels) for Docker
         id: meta
@@ -43,8 +50,8 @@ jobs:
       - name: 📦 Build and push Docker image
         uses: https://git.devthefuture.org/devthefuture/actions/buildkit@main
         with:
-          # context: .
-          # file: Dockerfile
+          context: ${{ inputs.context }}
+          file: ${{ inputs.dockerfile }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           registry: git.devthefuture.org
