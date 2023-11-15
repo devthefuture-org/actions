@@ -41,7 +41,7 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }},priority=200
 
       - name: 📦 Build and push Docker image
-        uses: devthefuture/actions/buildkit@main
+        uses: https://git.devthefuture.org/devthefuture/actions/buildkit@main
         with:
           # context: .
           # file: Dockerfile

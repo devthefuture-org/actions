@@ -31,7 +31,7 @@ jobs:
           ref: "main"
       
       - name: 🚀 Upgrade image tag
-        uses: devthefuture/actions/uptag@main
+        uses: https://git.devthefuture.org/devthefuture/actions/uptag@main
         with:
           app: ${{ inputs.app }}
           env: ${{ inputs.env }}
