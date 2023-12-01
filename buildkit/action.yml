@@ -87,6 +87,11 @@ runs:
           echo "{\"auths\":{\"${{ inputs.registry }}\":{\"username\":\"${{ inputs.registry-username }}\",\"password\":\"${{ inputs.registry-password }}\"}}}" > $DOCKER_CONFIG/config.json
         fi
 
+        target_args = ""
+        if [ -n "${{ inputs.target }}" ]; then
+          target_args = "--target=${{ inputs.target }}"
+        fi
+
         # build and push using buildkit
         buildctl \
           --addr ${{ inputs.buildkit-daemon-address }} \
@@ -101,6 +106,6 @@ runs:
             $(echo "${{ inputs.build-args }}" | sed -r '/^\s*$/d' - | sed -r 's/(.*)/--opt build-arg:\1 \\/' -) \
             $(echo "${{ inputs.labels }}" | sed -r '/^\s*$/d' - | sed -r 's/(.*)/--opt label:\1 \\/' -) \
             "${secret_args[@]}" \
-            --target=${{ inputs.target }} \
+            "${target_args}" \
             --opt filename=./${{ inputs.dockerfile }} \
             --output type=image,\"name=$(echo "${{ inputs.tags }}" | paste -sd ',' -)\",push=${{ inputs.push }}
