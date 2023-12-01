@@ -64,8 +64,26 @@ runs:
   using: 'composite'
   steps:
     - shell: bash
+      env:
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_SECRET: ${{ inputs.secrets }}
+        INPUT_REGISTRY: ${{ inputs.registry }}
+        INPUT_REGISTRY_USERNAME: ${{ inputs.registry-username }}
+        INPUT_REGISTRY_PASSWORD: ${{ inputs.registry-password }}
+        INPUT_TARGET: ${{ inputs.target }}
+        INPUT_BUILDKIT_DAEMON_ADDRESS: ${{ inputs.buildkit-daemon-address }}
+        INPUT_BUILDKIT_CERT_CA_FILE: ${{ inputs.buildkit-cert-ca-file }}
+        INPUT_BUILDKIT_CERT_FILE: ${{ inputs.buildkit-cert-file }}
+        INPUT_BUILDKIT_CERT_KEY_FILE: ${{ inputs.buildkit-cert-key-file }}
+        INPUT_CONTEXT: ${{ inputs.context }}
+        INPUT_DOCKERFILE: ${{ inputs.dockerfile }}
+        INPUT_PLATFORMS: ${{ inputs.platforms }}
+        INPUT_LABELS: ${{ inputs.labels }}
+        INPUT_BUILD_ARGS: ${{ inputs.build-args }}
+        INPUT_TAGS: ${{ inputs.tags }}
+        INPUT_PUSH: ${{ inputs.push }}
       run: |
-        cd "${{ inputs.path }}"
+        cd "$INPUT_PATH"
 
         # hanlde secrets to args
         declare -a secret_args
@@ -78,34 +96,34 @@ runs:
             export SECRET_ENV_${key}="${val}"
             secret_args+=("--secret id=${key},env=SECRET_ENV_${key}")
           fi
-        done <<< "${{ inputs.secrets }}"
+        done <<< "$INPUT_SECRETS"
 
         # login to docker registry
         export DOCKER_CONFIG=~/.docker
-        if [ -n "${{ inputs.registry }}" ]; then
+        if [ -n "$INPUT_REGISTRY" ]; then
           mkdir -p $DOCKER_CONFIG
-          echo "{\"auths\":{\"${{ inputs.registry }}\":{\"username\":\"${{ inputs.registry-username }}\",\"password\":\"${{ inputs.registry-password }}\"}}}" > $DOCKER_CONFIG/config.json
+          echo "{\"auths\":{\"$INPUT_REGISTRY\":{\"username\":\"$INPUT_REGISTRY_USERNAME\",\"password\":\"$INPUT_REGISTRY_PASSWORD\"}}}" > $DOCKER_CONFIG/config.json
         fi
 
         target_args = ""
-        if [ -n "${{ inputs.target }}" ]; then
-          target_args = "--target=${{ inputs.target }}"
+        if [ -n "$INPUT_TARGET" ]; then
+          target_args = "--target=$INPUT_TARGET"
         fi
 
         # build and push using buildkit
         buildctl \
-          --addr ${{ inputs.buildkit-daemon-address }} \
-          --tlscacert ${{ inputs.buildkit-cert-ca-file }} \
-          --tlscert ${{ inputs.buildkit-cert-file }} \
-          --tlskey ${{ inputs.buildkit-cert-key-file }} \
+          --addr $INPUT_BUILDKIT_DAEMON_ADDRESS \
+          --tlscacert $INPUT_BUILDKIT_CERT_CA_FILE \
+          --tlscert $INPUT_BUILDKIT_CERT_FILE \
+          --tlskey $INPUT_BUILDKIT_CERT_KEY_FILE \
           build \
             --frontend dockerfile.v0 \
-            --local context=${{ inputs.context }} \
-            --local dockerfile=${{ inputs.context }} \
-            --opt platform=${{ inputs.platforms }} \
-            $(echo "${{ inputs.build-args }}" | sed -r '/^\s*$/d' - | sed -r 's/(.*)/--opt build-arg:\1 \\/' -) \
-            $(echo "${{ inputs.labels }}" | sed -r '/^\s*$/d' - | sed -r 's/(.*)/--opt label:\1 \\/' -) \
+            --local context=$INPUT_CONTEXT \
+            --local dockerfile=$INPUT_CONTEXT \
+            --opt platform=$INPUT_PLATFORMS \
+            $(echo "$INPUT_BUILD_ARGS" | sed -r '/^\s*$/d' - | sed -r 's/(.*)/--opt build-arg:\1 \\/' -) \
+            $(echo "$INPUT_LABELS" | sed -r '/^\s*$/d' - | sed -r 's/(.*)/--opt label:\1 \\/' -) \
             "${secret_args[@]}" \
-            "${target_args}" \
-            --opt filename=./${{ inputs.dockerfile }} \
-            --output type=image,\"name=$(echo "${{ inputs.tags }}" | paste -sd ',' -)\",push=${{ inputs.push }}
+            "$target_args" \
+            --opt filename=./$INPUT_DOCKERFILE \
+            --output type=image,\"name=$(echo "$INPUT_TAGS" | paste -sd ',' -)\",push=$INPUT_PUSH
