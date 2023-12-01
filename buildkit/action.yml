@@ -105,9 +105,9 @@ runs:
           echo "{\"auths\":{\"$INPUT_REGISTRY\":{\"username\":\"$INPUT_REGISTRY_USERNAME\",\"password\":\"$INPUT_REGISTRY_PASSWORD\"}}}" > $DOCKER_CONFIG/config.json
         fi
 
-        target_args = ""
+        target_args=""
         if [ -n "$INPUT_TARGET" ]; then
-          target_args = "--target=$INPUT_TARGET"
+          target_args="--target=$INPUT_TARGET"
         fi
 
         # build and push using buildkit
