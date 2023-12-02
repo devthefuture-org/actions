@@ -48,6 +48,9 @@ inputs:
   build-args:
     description: 'Build arguments to be passed to the build'
     required: false
+  target:
+    description: 'Build stage to build'
+    required: false
   secrets:
     description: 'Build secrets to be passed to the build'
     required: false
