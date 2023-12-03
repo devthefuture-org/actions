@@ -27,7 +27,7 @@ runs:
     env:
       CD_APP: ${{ inputs.app || github.event.repository.name }}
       CD_ENV: ${{ inputs.env }}
-      CD_COMMIT: ${{ inputs.commit || 'false }}
+      CD_COMMIT: ${{ inputs.commit || 'false' }}
       CD_PUSH: ${{ inputs.push || 'false' }}
     shell: bash
     run: |
