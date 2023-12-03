@@ -13,6 +13,10 @@ inputs:
   meta-tags:
     description: "The meta-tags inputs, required if inputs.tag is not provided"
     required: false
+  key:
+    description: "The value key to upgrade"
+    required: false
+    default: "image.tag"
   commit:
     description: "Enable commit"
     required: false
@@ -29,6 +33,7 @@ runs:
       CD_ENV: ${{ inputs.env }}
       CD_COMMIT: ${{ inputs.commit || 'false' }}
       CD_PUSH: ${{ inputs.push || 'false' }}
+      CD_KEY: ${{ inputs.key }}
     shell: bash
     run: |
       TAG=${{ inputs.tag }}
@@ -40,7 +45,7 @@ runs:
 
       echo "Using tag: $TAG"
       values_file="apps/$CD_APP/envs/$CD_ENV.yaml"
-      yq e '.image.tag = "'$TAG'"' -i "$values_file"
+      yq e ".$CD_KEY = \"$TAG\"" -i "$values_file"
       git config user.name "forgejo-actions"
       git config user.email "bot@devthefuture.org"
       git add "$values_file"
