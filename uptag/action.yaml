@@ -13,6 +13,12 @@ inputs:
   meta-tags:
     description: "The meta-tags inputs, required if inputs.tag is not provided"
     required: false
+  commit:
+    description: "Enable commit"
+    required: false
+  push:
+    description: "Enable push"
+    required: false
 
 runs:
   using: "composite"
@@ -21,6 +27,8 @@ runs:
     env:
       CD_APP: ${{ inputs.app || github.event.repository.name }}
       CD_ENV: ${{ inputs.env }}
+      CD_COMMIT: ${{ inputs.commit || 'false }}
+      CD_PUSH: ${{ inputs.push || 'false' }}
     shell: bash
     run: |
       TAG=${{ inputs.tag }}
@@ -31,9 +39,16 @@ runs:
       fi
 
       echo "Using tag: $TAG"
-      yq e '.image.tag = "'$TAG'"' -i apps/$CD_APP/envs/$CD_ENV/values.yaml
+      values_files="envs/$CD_ENV/$CD_APP.yaml"
+      yq e '.image.tag = "'$TAG'"' -i $values_file
       git config user.name "forgejo-actions"
       git config user.email "bot@devthefuture.org"
-      git add .
-      git commit --allow-empty -m "chore: update image tag to $TAG"
-      git push origin HEAD
+      git add $values_files
+      
+      if [ "$CD_COMMIT" != "false" ]; then
+        git commit --allow-empty -m "chore: set $CD_ENV/$CD_APP image.tag=$TAG"
+      fi
+
+      if [ "$CD_PUSH" != "false" ]; then
+        git push origin HEAD
+      fi
