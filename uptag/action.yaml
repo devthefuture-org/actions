@@ -55,7 +55,7 @@ runs:
       git add .
       
       if [ "$CD_COMMIT" != "false" ]; then
-        git commit --allow-empty -m "chore: set $CD_ENV/$CD_APP image.tag=$TAG"
+        git commit --allow-empty -m "chore: set $CD_ENV image.tag=$TAG"
       fi
 
       if [ "$CD_PUSH" != "false" ]; then
