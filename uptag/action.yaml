@@ -2,10 +2,10 @@ name: Upgrade tag in appsets
 description: "Set image tag in values of an application for appsets of an organization"
 inputs:
   app:
-    description: "The app directory name, default to repository name"
+    description: "The app directory name (support comma separated list), default to repository name"
     required: false
   env:
-    description: "The env directory name"
+    description: "The env directory name (support comma separated list)"
     required: true
   tag:
     description: "The tag to set, default to extracted from meta-tags inputs"
@@ -44,11 +44,22 @@ runs:
       fi
 
       echo "Using tag: $TAG"
-      values_file="apps/$CD_APP/envs/$CD_ENV/values.yaml"
-      yq e ".$CD_KEY = \"$TAG\"" -i "$values_file"
+
+      original_ifs="$IFS"
+      IFS=','
+      for app in $CD_APP; do
+        for env in $CD_ENV; do
+          values_file="apps/$app/envs/$env/values.yaml"
+          echo updating values into: "$values_file"
+          yq e ".$CD_KEY = \"$TAG\"" -i "$values_file"
+        done
+      done
+      IFS="$original_ifs"
+
+      
       git config user.name "forgejo-actions"
       git config user.email "bot@devthefuture.org"
-      git add "$values_file"
+      git add .
       
       if [ "$CD_COMMIT" != "false" ]; then
         git commit --allow-empty -m "chore: set $CD_ENV/$CD_APP image.tag=$TAG"
