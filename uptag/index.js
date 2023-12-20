@@ -34,6 +34,8 @@ const main = async () => {
   const cdApp = process.env.CD_APP;
   const cdEnv = process.env.CD_ENV;
   const cdKey = process.env.CD_KEY;
+  const workspace = process.env.GITHUB_WORKSPACE;
+  process.cwd(workspace);
   let apps;
   if (cdApp.includes("\n")) {
     apps = yamlLoadAll(cdApp);
