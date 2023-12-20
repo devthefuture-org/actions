@@ -34,7 +34,7 @@ const RAW_RUNTIME_STATE =
     ]],\
     ["lodash.set", [\
       ["npm:4.3.2", {\
-        "packageLocation": "../../../../home/jo/.yarn/berry/cache/lodash.set-npm-4.3.2-7586c942c2-10c0.zip/node_modules/lodash.set/",\
+        "packageLocation": "./.yarn/cache/lodash.set-npm-4.3.2-7586c942c2-c641d31905.zip/node_modules/lodash.set/",\
         "packageDependencies": [\
           ["lodash.set", "npm:4.3.2"]\
         ],\
@@ -54,7 +54,7 @@ const RAW_RUNTIME_STATE =
     ]],\
     ["yaml", [\
       ["npm:2.3.4", {\
-        "packageLocation": "../../../../home/jo/.yarn/berry/cache/yaml-npm-2.3.4-8bb6dc2c0d-10c0.zip/node_modules/yaml/",\
+        "packageLocation": "./.yarn/cache/yaml-npm-2.3.4-8bb6dc2c0d-cf03b68f8f.zip/node_modules/yaml/",\
         "packageDependencies": [\
           ["yaml", "npm:2.3.4"]\
         ],\

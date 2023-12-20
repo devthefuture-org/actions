@@ -45,10 +45,10 @@ runs:
 
       echo "Using tag: $TAG"
 
+      export CD_WORKING_DIR=$PWD
       cd $GITHUB_ACTION_PATH
-      yarn
       yarn node index.js
-      cd $GITHUB_WORKSPACE
+      cd $CD_WORKING_DIR
       
       git config user.name "forgejo-actions"
       git config user.email "bot@devthefuture.org"
