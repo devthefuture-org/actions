@@ -45,7 +45,7 @@ runs:
 
       echo "Using tag: $TAG"
 
-      yarn node index.js
+      yarn node $GITHUB_ACTION_PATH/index.js
       
       git config user.name "forgejo-actions"
       git config user.email "bot@devthefuture.org"
