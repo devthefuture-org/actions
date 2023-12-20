@@ -47,7 +47,7 @@ const main = async () => {
       const { name, key = cdKey, tag = defaultTag } = app;
       const valuesFile = `apps/${name}/envs/${env}/values.yaml`;
       console.log(`${valuesFile} -> ${key}=${tag}`);
-      const valuesRaw = await fs.readFile(`${workingDir}/valuesFile`, { encoding: "utf-8" })
+      const valuesRaw = await fs.readFile(`${workingDir}/${valuesFile}`, { encoding: "utf-8" })
       const values = yaml.parse(valuesRaw);
       set(values, key, tag);
       await fs.writeFile(yaml.stringify(values), { encoding: "utf-8" });
