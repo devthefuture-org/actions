@@ -35,7 +35,6 @@ const main = async () => {
   const cdEnv = process.env.CD_ENV;
   const cdKey = process.env.CD_KEY;
   const workingDir = process.env.CD_WORKING_DIR;
-  process.cwd(workingDir);
   let apps;
   if (cdApp.includes("\n")) {
     apps = yamlLoadAll(cdApp);
@@ -48,7 +47,7 @@ const main = async () => {
       const { name, key = cdKey, tag = defaultTag } = app;
       const valuesFile = `apps/${name}/envs/${env}/values.yaml`;
       console.log(`${valuesFile} -> ${key}=${tag}`);
-      const valuesRaw = await fs.readFile(valuesFile, { encoding: "utf-8" })
+      const valuesRaw = await fs.readFile(`${workingDir}/valuesFile`, { encoding: "utf-8" })
       const values = yaml.parse(valuesRaw);
       set(values, key, tag);
       await fs.writeFile(yaml.stringify(values), { encoding: "utf-8" });
