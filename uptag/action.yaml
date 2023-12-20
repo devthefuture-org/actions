@@ -2,7 +2,7 @@ name: Upgrade tag in appsets
 description: "Set image tag in values of an application for appsets of an organization"
 inputs:
   app:
-    description: "The app directory name (support comma separated list), default to repository name"
+    description: "The app directory name (support comma separated list or yaml list of objects), default to repository name"
     required: false
   env:
     description: "The env directory name (support comma separated list)"
@@ -36,26 +36,16 @@ runs:
       CD_KEY: ${{ inputs.key }}
     shell: bash
     run: |
-      TAG=${{ inputs.tag }}
+      export TAG=${{ inputs.tag }}
       if [ -z "$TAG" ]; then
         IFS=',' read -ra TAGS_ARRAY <<< "${{ inputs.meta-tags }}"
         IMAGE=${TAGS_ARRAY[0]}
-        TAG=${IMAGE##*:}
+        export TAG=${IMAGE##*:}
       fi
 
       echo "Using tag: $TAG"
 
-      original_ifs="$IFS"
-      IFS=','
-      for app in $CD_APP; do
-        for env in $CD_ENV; do
-          values_file="apps/$app/envs/$env/values.yaml"
-          echo updating values into: "$values_file"
-          yq e ".$CD_KEY = \"$TAG\"" -i "$values_file"
-        done
-      done
-      IFS="$original_ifs"
-
+      yarn node index.js
       
       git config user.name "forgejo-actions"
       git config user.email "bot@devthefuture.org"

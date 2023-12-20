@@ -1,0 +1,10 @@
+{
+  "name": "uptag",
+  "main": "index.js",
+  "license": "MIT",
+  "packageManager": "yarn@4.0.2",
+  "dependencies": {
+    "lodash.set": "^4.3.2",
+    "yaml": "^2.3.4"
+  }
+}
