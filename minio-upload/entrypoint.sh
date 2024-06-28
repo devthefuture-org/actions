@@ -35,13 +35,15 @@ secret_key=$3
 local_path=$4
 remote_path=$5
 
-info "Will upload $local_path to $remote_path"
-
 mc alias set s3 $url $access_key $secret_key
 ok_or_die "Could not set mc alias"
 
-mc cp -r $local_path s3/$remote_path
-ok_or_die "Could not upload object"
+IFS=' ' read -r -a remote_paths <<< "$remote_path"
+for rpath in "${remote_paths[@]}"; do
+  info "Will upload $local_path to $rpath"
+  mc cp -r "$local_path" "$rpath"
+	ok_or_die "Could not upload object"
+done
 
 if [[ $# -eq 6 ]] ; then
 	if [[ $6 -eq 1 ]] ; then
