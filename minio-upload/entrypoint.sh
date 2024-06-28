@@ -38,10 +38,16 @@ remote_path=$5
 mc alias set s3 $url $access_key $secret_key
 ok_or_die "Could not set mc alias"
 
+if [[ "$local_path" == */ ]]; then
+  copy_command="mc cp -r"
+else
+  copy_command="mc cp"
+fi
+
 IFS=' ' read -r -a remote_paths <<< "$remote_path"
 for rpath in "${remote_paths[@]}"; do
   info "Will upload $local_path to $rpath"
-  mc cp -r $local_path s3/$rpath
+  $copy_command "$local_path" "s3/$rpath"
 	ok_or_die "Could not upload object"
 done
 
