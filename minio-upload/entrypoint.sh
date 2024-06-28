@@ -41,7 +41,7 @@ ok_or_die "Could not set mc alias"
 IFS=' ' read -r -a remote_paths <<< "$remote_path"
 for rpath in "${remote_paths[@]}"; do
   info "Will upload $local_path to $rpath"
-  mc cp -r "$local_path" "$rpath"
+  mc cp -r $local_path s3/$rpath
 	ok_or_die "Could not upload object"
 done
 
