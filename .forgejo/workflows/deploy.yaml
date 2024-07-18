@@ -30,7 +30,7 @@ jobs:
       image: devthefuture/act-runner:latest
     steps:
       - name: 🎡 Check out the Helm chart repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.1.7
         with:
           repository: "${{ github.repository_owner }}/appsets"
           token: ${{ secrets.M8A_ORG_BOT_REPO_TOKEN }}
